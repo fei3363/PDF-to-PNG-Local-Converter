@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <!--
+    轉換器: PDF 轉換為 PNG 轉換器 - CDN 版本
+    作者: fei (fei3363)
+    來源: https://github.com/fei3363/PDF2PNG-Local-Converter
+    -->
+    <meta charset="UTF-8">
+    <title>PDF 轉換為 PNG 轉換器  - CDN 版本 </title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        #images img {
+            margin-top: 15px;
+            max-width: 100%;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1>PDF 轉換為 PNG 轉換器</h1>
+    <input type="file" id="pdfInput" multiple accept="application/pdf">
+    <button id="convertButton">確認</button>
+    <div id="images"></div>
+
+    <script>
+        document.getElementById('convertButton').addEventListener('click', () => {
+            const files = document.getElementById('pdfInput').files;
+            for (let i = 0; i < files.length; i++) {
+                convertPDFToImages(files[i]);
+            }
+        });
+
+        async function convertPDFToImages(file) {
+            const fileReader = new FileReader();
+
+            fileReader.onload = async (e) => {
+                const typedArray = new Uint8Array(e.target.result);
+                const pdfDoc = await pdfjsLib.getDocument(typedArray).promise;
+
+                for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                    const page = await pdfDoc.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 1.5 });
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+
+                    await page.render({ canvasContext: ctx, viewport: viewport }).promise;
+
+                    const img = document.createElement('img');
+                    img.src = canvas.toDataURL();
+                    document.getElementById('images').appendChild(img);
+                }
+            };
+
+            fileReader.readAsArrayBuffer(file);
+        }
+    </script>
+</body>
+</html>
